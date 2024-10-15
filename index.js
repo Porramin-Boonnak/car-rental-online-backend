@@ -32,7 +32,6 @@ con.connect(function(err){
     if (err) throw err;
 });
 
-// Get all products
 app.get('/api/car', function (req, res) {
     con.query("SELECT * FROM car", function (err,result,fields) {
         if (err) throw res.status(400).send('Not found any car');
@@ -41,7 +40,6 @@ app.get('/api/car', function (req, res) {
     });
 });
 
-// Get a specific product by ID
 app.get('/api/car/:id', function (req, res) {
     const id = req.params.id;
     con.query("SELECT * FROM car where id="+id, function (err,result,fields){
@@ -55,6 +53,36 @@ app.get('/api/car/:id', function (req, res) {
         }
     });
 });
+
+app.delete('/api/car/:id', function (req, res) {
+    const id = parseInt(req.params.id);
+
+    con.query("SELECT COUNT(id) AS `count(id)` FROM car", function (err, result) {
+        if (err) throw err;
+
+        const count = result[0]["count(id)"];
+
+        if (count > 0) {
+
+            con.query(`DELETE FROM car WHERE id = ${id}`, function (err, deleteResult) {
+                if (err) throw err;
+
+                con.query(`UPDATE car SET id = id - 1 WHERE id > ${id}`, function (err, updateResult) {
+                    if (err) throw err;
+
+                    con.query("SELECT * FROM car", function (err,result,fields) {
+                        if (err) throw res.status(400).send('Not found any car');
+                        console.log(result);
+                        res.send(result);
+                    });
+                });
+            });
+        } else {
+            res.status(404).send('Not found any car');
+        }
+    });
+});
+
 
 const port = 5000;
 app.listen(port, function () {
