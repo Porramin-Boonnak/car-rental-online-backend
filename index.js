@@ -64,10 +64,13 @@ app.delete('/api/car/:id', function (req, res) {
                 if (err) throw err;
                 con.query(`UPDATE car SET id = id - 1 WHERE id > ${id}`, function (err, updateResult) {
                     if (err) throw err;
-                    con.query("SELECT * FROM car", function (err,result,fields) {
-                        if (err) throw res.status(400).send('Not found any car');
-                        console.log(result);
-                        res.send(result);
+                    con.query(`UPDATE shop SET rent_car = rent_car - 1 WHERE rent_car > ${id}`, function (err, updateResult) {
+                        if (err) throw err;
+                        con.query("SELECT * FROM car", function (err,result,fields) {
+                            if (err) throw res.status(400).send('Not found any car');
+                            console.log(result);
+                            res.send(result);
+                        });
                     });
                 });
             });
@@ -107,6 +110,35 @@ app.post('/api/customer', function (req, res) {
     });
 });
 
+app.post('/api/rentcar', function (req, res) {
+    const id_customer = req.body.id_customer;
+    const rent_car = req.body.rent_car;
+    const date_start = req.body.date_start;
+    const date_end = req.body.date_end;
+    const return_location = req.body.return_location;
+    const rent_late = req.body.rent_late;
+    const income = req.body.income;
+    con.query(`INSERT INTO shop VALUES('${id_customer}', '${rent_car}', '${date_start}', '${date_end}', '${return_location}', ${rent_late}, ${income})`, function (err,result,fields) {
+        if (err) throw err;
+        con.query(`UPDATE shop SET date_start = '${date_start}' WHERE date_start = '0000-00-00'`, function (err,result,fields) {
+            if (err) throw err;
+            con.query(`UPDATE shop SET date_end = '${date_end}' WHERE date_end = '0000-00-00'`, function (err,result,fields) {
+                if (err) throw err;
+                res.send("Successfully");
+            });
+        });
+    });
+    
+    
+});
+
+app.get('/api/rentcar', function (req, res) {
+    con.query("SELECT * FROM shop", function (err,result,fields) {
+        if (err) throw res.status(400).send('Not found any shop');
+        console.log(result);
+        res.send(result);
+    });
+});
 
 const port = 5000;
 app.listen(port, function () {
