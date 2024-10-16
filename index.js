@@ -56,20 +56,14 @@ app.get('/api/car/:id', function (req, res) {
 
 app.delete('/api/car/:id', function (req, res) {
     const id = parseInt(req.params.id);
-
     con.query("SELECT COUNT(id) AS `count(id)` FROM car", function (err, result) {
         if (err) throw err;
-
         const count = result[0]["count(id)"];
-
         if (count > 0) {
-
             con.query(`DELETE FROM car WHERE id = ${id}`, function (err, deleteResult) {
                 if (err) throw err;
-
                 con.query(`UPDATE car SET id = id - 1 WHERE id > ${id}`, function (err, updateResult) {
                     if (err) throw err;
-
                     con.query("SELECT * FROM car", function (err,result,fields) {
                         if (err) throw res.status(400).send('Not found any car');
                         console.log(result);
@@ -79,6 +73,36 @@ app.delete('/api/car/:id', function (req, res) {
             });
         } else {
             res.status(404).send('Not found any car');
+        }
+    });
+});
+
+app.post('/api/customer', function (req, res) {
+    const username = req.body.username;
+    const password = req.body.password;
+    const email = req.body.email;
+    con.query("SELECT COUNT(id) AS `count(id)` FROM customer", function (err, result) {
+        if (err) throw err;
+        const count = parseInt(result[0]["count(id)"]);
+        if (count > 0) {
+            con.query(`insert into customer values('${count+1}', '${username}' ,'${password}', '${email}')`, function (err, result) {
+            if (err) throw res.status(400).send("Error cannot add customer");
+            con.query(`select * from customer where id='${count+1}'`, function (err,result,fields) {
+                if (err) throw res.status(400).send('Not found any customer');
+                console.log(result);
+                res.send(result);
+            });
+            });
+        }
+        else {
+            con.query(`insert into customer values('1', '${username}' ,'${password}', '${email}')`, function (err, result) {
+                if (err) throw res.status(400).send("Error cannot add customer");
+                con.query("select * from customer where id=1", function (err,result,fields) {
+                    if (err) throw res.status(400).send('Not found any customer');
+                    console.log(result);
+                    res.send(result);
+                });
+                });
         }
     });
 });
