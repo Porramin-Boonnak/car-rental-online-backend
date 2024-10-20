@@ -138,6 +138,25 @@ app.post('/api/car', function (req, res) {
     });
 });
 
+app.put('/api/car/:id', function (req, res) {
+    const id = parseInt(req.params.id);
+    const name = req.body.name;
+    const price = req.body.price;
+    const seat = req.body.seat;
+    const detail = req.body.detail;
+    const type = req.body.type;
+    const location = req.body.location;
+    const img = req.body.img;
+    con.query(`UPDATE car SET name = '${name}',price=${price},seat=${seat},detail='${detail}',type='${type}',location='${location}',img='${img}'  WHERE id = ${id}`, function (err,result,fields) {
+        if (err) throw res.status(400).send('Not found');
+        con.query("SELECT * FROM car", function (err,result,fields) {
+            if (err) throw res.status(400).send('Not found any car');
+            console.log(result);
+            res.send(result);
+        });
+    });
+});
+
 const port = 5000;
 app.listen(port, function () {
     console.log("Listening on port", port);
