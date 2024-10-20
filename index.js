@@ -123,6 +123,21 @@ app.put('/api/rentcar/:id', function (req, res) {
     });
 });
 
+app.post('/api/car', function (req, res) {
+    const name = req.body.name;
+    const price = req.body.price;
+    const seat = req.body.seat;
+    const detail = req.body.detail;
+    const type = req.body.type;
+    const location = req.body.location;
+    const img = req.body.img;
+    con.query(`INSERT INTO car (name,price,seat,detail,type,location,img) VALUES('${name}', ${price}, ${seat}, '${detail}', '${type}', '${location}', '${img}')`, function (err,result,fields) {
+        if (err) throw res.status(400).send('Not found any shop');
+        console.log(result);
+        res.send(result);
+    });
+});
+
 const port = 5000;
 app.listen(port, function () {
     console.log("Listening on port", port);
