@@ -22,11 +22,11 @@ app.use((req, res, next) => {
 app.use(express.json());
 
 var con = mysql.createConnection({
-    host: "sql12.freesqldatabase.com",
-    user: "sql12737374",
-    password: "AbSIGRAnfS",
+    host: "127.0.0.1",
+    user: "root",
+    password: "1212312121",
     port : 3306,
-    database: "sql12737374"
+    database: "car_rental"
 });
 con.connect(function(err){
     if (err) throw err;
@@ -120,13 +120,7 @@ app.post('/api/rentcar', function (req, res) {
     const income = req.body.income;
     con.query(`INSERT INTO shop VALUES('${id_customer}', '${rent_car}', '${date_start}', '${date_end}', '${return_location}', ${rent_late}, ${income})`, function (err,result,fields) {
         if (err) throw err;
-        con.query(`UPDATE shop SET date_start = '${date_start}' WHERE date_start = '0000-00-00'`, function (err,result,fields) {
-            if (err) throw err;
-            con.query(`UPDATE shop SET date_end = '${date_end}' WHERE date_end = '0000-00-00'`, function (err,result,fields) {
-                if (err) throw err;
-                res.send("Successfully");
-            });
-        });
+        res.send("Successfully");
     });
     
     
