@@ -56,57 +56,27 @@ app.get('/api/car/:id', function (req, res) {
 
 app.delete('/api/car/:id', function (req, res) {
     const id = parseInt(req.params.id);
-    con.query("SELECT COUNT(id) AS `count(id)` FROM car", function (err, result) {
+    con.query(`DELETE FROM car WHERE id = ${id}`, function (err, deleteResult) {
         if (err) throw err;
-        const count = result[0]["count(id)"];
-        if (count > 0) {
-            con.query(`DELETE FROM car WHERE id = ${id}`, function (err, deleteResult) {
-                if (err) throw err;
-                con.query(`UPDATE car SET id = id - 1 WHERE id > ${id}`, function (err, updateResult) {
-                    if (err) throw err;
-                    con.query(`UPDATE shop SET rent_car = rent_car - 1 WHERE rent_car > ${id}`, function (err, updateResult) {
-                        if (err) throw err;
-                        con.query("SELECT * FROM car", function (err,result,fields) {
-                            if (err) throw res.status(400).send('Not found any car');
-                            console.log(result);
-                            res.send(result);
-                        });
-                    });
+                con.query("SELECT * FROM car", function (err,result,fields) {
+                    if (err) throw res.status(400).send('Not found any car');
+                    console.log(result);
+                    res.send(result);
                 });
             });
-        } else {
-            res.status(404).send('Not found any car');
-        }
-    });
 });
 
 app.post('/api/customer', function (req, res) {
     const username = req.body.username;
     const password = req.body.password;
     const email = req.body.email;
-    con.query("SELECT COUNT(id) AS `count(id)` FROM customer", function (err, result) {
-        if (err) throw err;
-        const count = parseInt(result[0]["count(id)"]);
-        if (count > 0) {
-            con.query(`insert into customer values('${count+1}', '${username}' ,'${password}', '${email}')`, function (err, result) {
-            if (err) throw res.status(400).send("Error cannot add customer");
-            con.query(`select * from customer where id='${count+1}'`, function (err,result,fields) {
-                if (err) throw res.status(400).send('Not found any customer');
-                console.log(result);
-                res.send(result);
-            });
-            });
-        }
-        else {
-            con.query(`insert into customer values('1', '${username}' ,'${password}', '${email}')`, function (err, result) {
-                if (err) throw res.status(400).send("Error cannot add customer");
-                con.query("select * from customer where id=1", function (err,result,fields) {
-                    if (err) throw res.status(400).send('Not found any customer');
-                    console.log(result);
-                    res.send(result);
-                });
-                });
-        }
+    con.query(`insert into customer (username,password,email) values('${username}' ,'${password}', '${email}')`, function (err, result) {
+    if (err) throw res.status(400).send("Error cannot add customer");  
+    con.query("SELECT * FROM customer", function (err,result,fields) {
+        if (err) throw res.status(400).send('Not found any car');
+        console.log(result);
+        res.send(result);
+    });
     });
 });
 
@@ -117,8 +87,9 @@ app.post('/api/rentcar', function (req, res) {
     const date_end = req.body.date_end;
     const return_location = req.body.return_location;
     const rent_late = req.body.rent_late;
+    const status = req.body.status;
     const income = req.body.income;
-    con.query(`INSERT INTO shop VALUES('${id_customer}', '${rent_car}', '${date_start}', '${date_end}', '${return_location}', ${rent_late}, ${income})`, function (err,result,fields) {
+    con.query(`INSERT INTO shop (id_customer,rent_car,date_start,date_end,return_location,rent_late,status,income) VALUES('${id_customer}', '${rent_car}', '${date_start}', '${date_end}', '${return_location}', ${rent_late}, '${status}',${income})`, function (err,result,fields) {
         if (err) throw err;
         res.send("Successfully");
     });
@@ -131,6 +102,24 @@ app.get('/api/rentcar', function (req, res) {
         if (err) throw res.status(400).send('Not found any shop');
         console.log(result);
         res.send(result);
+    });
+});
+
+app.put('/api/rentcar/:id', function (req, res) {
+    const id = parseInt(req.params.id);
+    const status = req.body.status
+    const rent_late = req.body.rent_late
+    const returnlocation = req.body.returnlocation
+    const car = req.body.car
+    con.query(`UPDATE shop SET status = '${status}',rent_late=${rent_late}  WHERE id = ${id}`, function (err,result,fields) {
+        if (err) throw res.status(400).send('Not found');
+        con.query(`UPDATE car SET location = '${returnlocation}' WHERE id = ${car}`, function (err,result,fields) {
+            if (err) throw res.status(400).send('Not found any shop');
+            con.query("SELECT * FROM shop", function (err,result,fields) {
+                if (err) throw res.status(400).send('Not found any shop');
+                res.send(result);
+            });
+        });
     });
 });
 
