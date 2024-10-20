@@ -157,6 +157,28 @@ app.put('/api/car/:id', function (req, res) {
     });
 });
 
+app.post('/api/customerlogin', function (req, res) {
+    const username = req.body.username
+    const password = req.body.password
+    con.query(`SELECT * FROM customer where username='${username}' `, function (err,result,fields) {
+        if (result.length>0)
+        {
+            con.query(`SELECT * FROM customer where password='${password}' `, function (err,result,fields) {
+                if (result.length>0) 
+                {
+                    res.send("Successfully")
+                }
+                else {
+                    res.status(400).send('Not found any car')
+                }
+            });
+        }
+        else{
+            res.status(400).send('Not found any car')
+        } 
+    });
+});
+
 const port = 5000;
 app.listen(port, function () {
     console.log("Listening on port", port);
