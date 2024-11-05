@@ -192,6 +192,22 @@ app.post('/api/customer/status', function (req, res) {
     
 });
 
+app.get('/api/customer/status', function (req, res) {
+    try
+    {
+        const authtoken = req.body.token;
+        const user = jwt.verify(authtoken,keyforlogin);
+        con.query(`SELECT * FROM customer where id = ${user.id}`, function (err,result,fields) {
+        if (err) throw res.status(400).send('Not found any customer');
+        res.send(result);
+    });
+    }
+    catch{
+        res.status(401).send('please login ')
+    }
+    
+});
+
 const port = 5000;
 app.listen(port, function () {
     console.log("Listening on port", port);
