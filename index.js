@@ -192,7 +192,7 @@ app.post('/api/customer/status', function (req, res) {
     
 });
 
-app.post('/api/customer/status/login', function (req, res) {
+app.get('/api/customer/status', function (req, res) {
     try
     {
         const authtoken = req.body.token;
