@@ -21,9 +21,9 @@ app.use((req, res, next) => {
 app.use(express.json());
 
 var con = mysql.createConnection({
-    host: "127.0.0.1",
+    host: "52.187.25.101",
     user: "root",
-    password: "1212312121",
+    password: "M1212312121@049568048679i4569456",
     port : 3306,
     database: "car_rental"
 });
