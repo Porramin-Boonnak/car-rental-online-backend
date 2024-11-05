@@ -73,27 +73,27 @@ app.post('/api/customer', function (req, res) {
     const email = req.body.email;
     con.query(`insert into customer (username,password,email) values('${username}' ,'${password}', '${email}')`, function (err, result) {
     if (err) throw res.status(400).send("Error cannot add customer");  
-        const token = jwt.sign({email:email},keyforlogin,{expiresIn: '6h'})
-        res.cookie('token',token,{
-            maxAge:2160000,
-            secure: true,
-            httpOnly: true,
-            sameSite: "none",
-        })
-        res.send("Successfully");
+    con.query(`SELECT * FROM customer where username = '${username}' `, function (err,result,fields) {
+        if (err) throw res.status(400).send('Not found any car');
+        const token = jwt.sign({id:result[0].id,username:username},keyforlogin,{expiresIn: '6h'})
+        res.send(token);
+    });
     });
 });
 
 app.post('/api/rentcar', function (req, res) {
-    const id_customer = req.body.id_customer;
+    const token = req.body.token;
     const rent_car = req.body.rent_car;
     const date_start = req.body.date_start;
     const date_end = req.body.date_end;
+    const location = req.body.location;
     const return_location = req.body.return_location;
     const rent_late = req.body.rent_late;
     const status = req.body.status;
     const income = req.body.income;
-    con.query(`INSERT INTO shop (id_customer,rent_car,date_start,date_end,return_location,rent_late,status,income) VALUES('${id_customer}', '${rent_car}', '${date_start}', '${date_end}', '${return_location}', ${rent_late}, '${status}',${income})`, function (err,result,fields) {
+    const user = jwt.verify(token,keyforlogin);
+    console.log(user);
+    con.query(`INSERT INTO shop (id_customer,username,rent_car,date_start,date_end,location,return_location,rent_late,status,income) VALUES('${user.id}','${user.username}', '${rent_car}', '${date_start}', '${date_end}', '${location}', '${return_location}', ${rent_late}, '${status}',${income})`, function (err,result,fields) {
         if (err) throw err;
         res.send("Successfully");
     });
@@ -164,30 +164,32 @@ app.put('/api/car/:id', function (req, res) {
 app.post('/api/customerlogin', function (req, res) {
     const username = req.body.username
     const password = req.body.password
-    con.query(`SELECT * FROM customer where username='${username}' `, function (err,result,fields) {
+    con.query(`SELECT * FROM customer where username='${username}' and password='${password}'`, function (err,result,fields) {
         if (result.length>0)
         {
-            con.query(`SELECT * FROM customer where password='${password}' `, function (err,result,fields) {
-                if (result.length>0) 
-                {
-                    const token = jwt.sign({email:result[0].email},keyforlogin,{expiresIn: '6h'})
-                    res.cookie('token',token,{
-                        maxAge:2160000,
-                        secure: true,
-                        httpOnly: true,
-                        sameSite: "none",
-                    })
-                    res.send("Successfully")
-                }
-                else {
-                    res.status(400).send('Not found any customer')
-                }
-            });
+            const token = jwt.sign({id:result[0].id,username:username},keyforlogin,{expiresIn: '6h'})
+            res.send(token)
         }
         else{
             res.status(400).send('Not found any customer')
         } 
     });
+});
+
+app.post('/api/customer/status', function (req, res) {
+    try
+    {
+        const authtoken = req.body.token;
+        const user = jwt.verify(authtoken,keyforlogin);
+        con.query(`SELECT * FROM shop where id_customer = ${user.id}`, function (err,result,fields) {
+        if (err) throw res.status(400).send('Not found any rentcar');
+        res.send(result);
+    });
+    }
+    catch{
+        res.status(401).send('please login ')
+    }
+    
 });
 
 const port = 5000;
