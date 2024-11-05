@@ -1,7 +1,6 @@
 const express = require('express');
 const bodyParser = require('body-parser');
-const { application } = require('express');
-const { v4: uuidv4} = require('uuid');
+const jwt = require('jsonwebtoken');
 var mysql = require('mysql');
 
 const app = express();
@@ -31,6 +30,8 @@ var con = mysql.createConnection({
 con.connect(function(err){
     if (err) throw err;
 });
+
+const keyforlogin = '1212312121';
 
 app.get('/api/car', function (req, res) {
     con.query("SELECT * FROM car", function (err,result,fields) {
@@ -72,11 +73,14 @@ app.post('/api/customer', function (req, res) {
     const email = req.body.email;
     con.query(`insert into customer (username,password,email) values('${username}' ,'${password}', '${email}')`, function (err, result) {
     if (err) throw res.status(400).send("Error cannot add customer");  
-    con.query("SELECT * FROM customer", function (err,result,fields) {
-        if (err) throw res.status(400).send('Not found any car');
-        console.log(result);
-        res.send(result);
-    });
+        const token = jwt.sign({email:email},keyforlogin,{expiresIn: '6h'})
+        res.cookie('token',token,{
+            maxAge:2160000,
+            secure: true,
+            httpOnly: true,
+            sameSite: "none",
+        })
+        res.send("Successfully");
     });
 });
 
@@ -166,15 +170,22 @@ app.post('/api/customerlogin', function (req, res) {
             con.query(`SELECT * FROM customer where password='${password}' `, function (err,result,fields) {
                 if (result.length>0) 
                 {
+                    const token = jwt.sign({email:result[0].email},keyforlogin,{expiresIn: '6h'})
+                    res.cookie('token',token,{
+                        maxAge:2160000,
+                        secure: true,
+                        httpOnly: true,
+                        sameSite: "none",
+                    })
                     res.send("Successfully")
                 }
                 else {
-                    res.status(400).send('Not found any car')
+                    res.status(400).send('Not found any customer')
                 }
             });
         }
         else{
-            res.status(400).send('Not found any car')
+            res.status(400).send('Not found any customer')
         } 
     });
 });
